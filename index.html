@@ -447,6 +447,28 @@
   }
   .reminder-item:hover .reminder-delete { opacity: 1; }
   .reminder-delete:hover { color: var(--red); }
+  .reminder-edit {
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+    opacity: 0;
+    transition: opacity .15s, color .15s;
+    margin-right: 2px;
+  }
+  .reminder-item:hover .reminder-edit { opacity: 1; }
+  .reminder-edit:hover { color: var(--accent); }
+  .reminder-inline-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+  }
   .add-reminder-row {
     display: flex;
     gap: 8px;
@@ -510,7 +532,12 @@
     font-size: 11px;
     color: var(--accent);
     line-height: 1.3;
-    cursor: default;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .cal-event:hover {
+    background: rgba(79,142,247,.22);
+    border-color: rgba(79,142,247,.45);
   }
   .cal-event .evt-time { font-size: 10px; opacity: .7; display: block; }
   .cal-event-delete {
@@ -584,7 +611,8 @@
   .form-select option { background: var(--bg3); }
   .form-textarea { resize: vertical; min-height: 70px; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-start; align-items: center; margin-top: 18px; }
+  .modal-actions .modal-actions-spacer { flex: 1; }
 
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -970,16 +998,18 @@
       </div>
     </div>
     <div class="modal-actions">
+      <button class="btn" id="task-delete-btn" style="color:var(--red);border-color:rgba(248,81,73,.3);display:none" onclick="deleteTaskFromModal()">Delete</button>
+      <div class="modal-actions-spacer"></div>
       <button class="btn" onclick="closeTaskModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
     </div>
   </div>
 </div>
 
-<!-- Add Event Modal -->
+<!-- Add/Edit Event Modal -->
 <div class="modal-overlay" id="event-modal">
   <div class="modal">
-    <div class="modal-title">New Event</div>
+    <div class="modal-title" id="event-modal-title">New Event</div>
     <div class="form-group">
       <label class="form-label">Event Title *</label>
       <input type="text" class="form-input" id="event-title" placeholder="Event title" />
@@ -999,6 +1029,8 @@
       <input type="text" class="form-input" id="event-desc" placeholder="Optional" />
     </div>
     <div class="modal-actions">
+      <button class="btn" id="event-delete-btn" style="color:var(--red);border-color:rgba(248,81,73,.3);display:none" onclick="deleteEventFromModal()">Delete</button>
+      <div class="modal-actions-spacer"></div>
       <button class="btn" onclick="closeEventModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
     </div>
@@ -1255,6 +1287,7 @@ function buildCard(t, col, todayStr) {
   return `
     <div class="kanban-card ${t.priority}-border" draggable="true"
          data-id="${t.id}"
+         onclick="openEditTaskModal('${t.id}')"
          ondragstart="onCardDragStart(event, '${t.id}', this)"
          ondragend="onCardDragEnd(this)">
       <div class="card-title">${t.title}</div>
@@ -1295,11 +1328,33 @@ function openTaskModal(defaultStatus) {
   document.getElementById('task-priority').value = 'medium';
   document.getElementById('task-status').value = defaultStatus || 'backlog';
   document.getElementById('task-due').value = '';
+  document.getElementById('task-delete-btn').style.display = 'none';
+  document.getElementById('task-modal').classList.add('open');
+  setTimeout(() => document.getElementById('task-title').focus(), 50);
+}
+function openEditTaskModal(id) {
+  const t = state.tasks.find(t => t.id === id);
+  if (!t) return;
+  editingTaskId = id;
+  document.getElementById('task-modal-title').textContent = 'Edit Task';
+  document.getElementById('task-title').value = t.title;
+  document.getElementById('task-desc').value = t.description || '';
+  document.getElementById('task-assigned').value = t.assignedTo || 'Leo';
+  document.getElementById('task-priority').value = t.priority || 'medium';
+  document.getElementById('task-status').value = t.status || 'backlog';
+  document.getElementById('task-due').value = t.dueDate || '';
+  document.getElementById('task-delete-btn').style.display = 'inline-block';
   document.getElementById('task-modal').classList.add('open');
   setTimeout(() => document.getElementById('task-title').focus(), 50);
 }
 function closeTaskModal() {
   document.getElementById('task-modal').classList.remove('open');
+}
+function deleteTaskFromModal() {
+  if (!editingTaskId) return;
+  if (!confirm('Delete this task?')) return;
+  state.tasks = state.tasks.filter(t => t.id !== editingTaskId);
+  saveData(); closeTaskModal(); renderKanban(); renderToday(); updateBadges();
 }
 function saveTask() {
   const title = document.getElementById('task-title').value.trim();
@@ -1332,28 +1387,67 @@ function renderReminders() {
   if (active.length === 0) {
     activeEl.innerHTML = '<div class="empty-state">No active reminders</div>';
   } else {
-    activeEl.innerHTML = active.map(r => `
-      <div class="reminder-item">
-        <input type="checkbox" onchange="toggleReminder('${r.id}', this.checked)" />
-        <span class="reminder-text">${r.text}</span>
-        <span class="reminder-delete" onclick="deleteReminder('${r.id}')">✕</span>
-      </div>
-    `).join('');
+    activeEl.innerHTML = active.map(r => buildReminderRow(r)).join('');
   }
 
   const doneEl = document.getElementById('reminders-done-list');
   if (done.length === 0) {
     doneEl.innerHTML = '<div class="empty-state">Nothing completed yet</div>';
   } else {
-    doneEl.innerHTML = done.map(r => `
-      <div class="reminder-item">
-        <input type="checkbox" checked onchange="toggleReminder('${r.id}', this.checked)" />
-        <span class="reminder-text done">${r.text}</span>
-        <span class="reminder-delete" onclick="deleteReminder('${r.id}')">✕</span>
-      </div>
-    `).join('');
+    doneEl.innerHTML = done.map(r => buildReminderRow(r)).join('');
   }
 }
+
+function buildReminderRow(r) {
+  return `
+    <div class="reminder-item" id="rem-row-${r.id}">
+      <input type="checkbox" ${r.completed ? 'checked' : ''} onchange="toggleReminder('${r.id}', this.checked)" />
+      <span class="reminder-text ${r.completed ? 'done' : ''}">${escHtml(r.text)}</span>
+      <span class="reminder-edit" onclick="startEditReminder('${r.id}')" title="Edit">✏️</span>
+      <span class="reminder-delete" onclick="deleteReminder('${r.id}')">✕</span>
+    </div>
+  `;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function startEditReminder(id) {
+  const r = state.reminders.find(r => r.id === id);
+  if (!r) return;
+  const row = document.getElementById('rem-row-' + id);
+  if (!row) return;
+  row.innerHTML = `
+    <input type="checkbox" ${r.completed ? 'checked' : ''} onchange="toggleReminder('${id}', this.checked)" />
+    <input type="text" class="reminder-inline-input" id="rem-edit-input-${id}" value="${escHtml(r.text)}" onkeydown="handleReminderEditKey(event,'${id}')" />
+    <button class="btn btn-sm btn-primary" style="padding:3px 8px;font-size:11px" onclick="saveEditReminder('${id}')">Save</button>
+    <button class="btn btn-sm" style="padding:3px 8px;font-size:11px" onclick="cancelEditReminder('${id}')">Cancel</button>
+  `;
+  setTimeout(() => {
+    const inp = document.getElementById('rem-edit-input-' + id);
+    if (inp) { inp.focus(); inp.select(); }
+  }, 30);
+}
+
+function handleReminderEditKey(e, id) {
+  if (e.key === 'Enter') saveEditReminder(id);
+  if (e.key === 'Escape') cancelEditReminder(id);
+}
+
+function saveEditReminder(id) {
+  const inp = document.getElementById('rem-edit-input-' + id);
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  const r = state.reminders.find(r => r.id === id);
+  if (r) { r.text = text; saveData(); renderReminders(); updateBadges(); }
+}
+
+function cancelEditReminder(id) {
+  renderReminders();
+}
+
 function toggleReminder(id, checked) {
   const r = state.reminders.find(r => r.id === id);
   if (r) { r.completed = checked; saveData(); renderReminders(); updateBadges(); }
@@ -1403,10 +1497,10 @@ function renderCalendar() {
     const isToday = dateStr === todayStr;
     const dayEvents = state.events.filter(e => e.date === dateStr);
     const eventsHtml = dayEvents.map(e => `
-      <div class="cal-event">
+      <div class="cal-event" onclick="openEditEventModal('${e.id}')">
+        <span class="cal-event-delete" onclick="event.stopPropagation();deleteEvent('${e.id}')">✕</span>
         <span class="evt-time">${e.time ? fmtTime(e.time) : 'All day'}</span>
-        ${e.title}
-        <span class="cal-event-delete" onclick="deleteEvent('${e.id}')">✕</span>
+        ${escHtml(e.title)}
       </div>
     `).join('');
     return `
@@ -1426,28 +1520,52 @@ function deleteEvent(id) {
 }
 
 // ── Event Modal ──
+let editingEventId = null;
 function openEventModal() {
+  editingEventId = null;
+  document.getElementById('event-modal-title').textContent = 'New Event';
   document.getElementById('event-title').value = '';
   document.getElementById('event-date').value = today();
   document.getElementById('event-time').value = '';
   document.getElementById('event-desc').value = '';
+  document.getElementById('event-delete-btn').style.display = 'none';
+  document.getElementById('event-modal').classList.add('open');
+  setTimeout(() => document.getElementById('event-title').focus(), 50);
+}
+function openEditEventModal(id) {
+  const e = state.events.find(e => e.id === id);
+  if (!e) return;
+  editingEventId = id;
+  document.getElementById('event-modal-title').textContent = 'Edit Event';
+  document.getElementById('event-title').value = e.title;
+  document.getElementById('event-date').value = e.date;
+  document.getElementById('event-time').value = e.time || '';
+  document.getElementById('event-desc').value = e.description || '';
+  document.getElementById('event-delete-btn').style.display = 'inline-block';
   document.getElementById('event-modal').classList.add('open');
   setTimeout(() => document.getElementById('event-title').focus(), 50);
 }
 function closeEventModal() {
   document.getElementById('event-modal').classList.remove('open');
 }
+function deleteEventFromModal() {
+  if (!editingEventId) return;
+  if (!confirm('Delete this event?')) return;
+  state.events = state.events.filter(e => e.id !== editingEventId);
+  saveData(); closeEventModal(); renderCalendar(); renderToday(); updateBadges();
+}
 function saveEvent() {
   const title = document.getElementById('event-title').value.trim();
   const date = document.getElementById('event-date').value;
   if (!title || !date) { alert('Please enter a title and date.'); return; }
-  state.events.push({
-    id: uid(),
-    title,
-    date,
-    time: document.getElementById('event-time').value || '',
-    description: document.getElementById('event-desc').value.trim()
-  });
+  if (editingEventId) {
+    const idx = state.events.findIndex(e => e.id === editingEventId);
+    if (idx >= 0) {
+      state.events[idx] = { id: editingEventId, title, date, time: document.getElementById('event-time').value || '', description: document.getElementById('event-desc').value.trim() };
+    }
+  } else {
+    state.events.push({ id: uid(), title, date, time: document.getElementById('event-time').value || '', description: document.getElementById('event-desc').value.trim() });
+  }
   saveData(); closeEventModal(); renderCalendar(); renderToday(); updateBadges();
 }
 
