@@ -622,6 +622,22 @@
     color: var(--text3);
     font-size: 12px;
   }
+
+  /* ── Drag and Drop ── */
+  .kanban-card.dragging {
+    opacity: 0.35;
+    cursor: grabbing;
+  }
+  .kanban-card[draggable="true"] { cursor: grab; }
+  .kanban-col.drag-over {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(79,142,247,0.2);
+    background: var(--bg2);
+  }
+  .kanban-col.drag-over .kanban-cards {
+    background: rgba(79,142,247,0.05);
+    border-radius: 6px;
+  }
 </style>
 </head>
 <body>
@@ -666,7 +682,7 @@
       <div class="status-dot"></div>
       Hero is online
     </div>
-    <div>data.json synced</div>
+    <div>Saved locally</div>
   </div>
 </nav>
 
@@ -990,6 +1006,26 @@
 </div>
 
 <script>
+// ── Default Data ──
+const DEFAULT_DATA = {
+  tasks: [
+    { id: 'task-001', title: 'Obtain AS 2047 Window Certification', description: 'Request cert from factory via David. Required for QBCC approval.', assignedTo: 'Leo', priority: 'high', status: 'inprogress', dueDate: null, dateAdded: '2026-03-17' },
+    { id: 'task-002', title: 'Complete NCC 2022 Documentation', description: 'National Construction Code 2022 compliance docs incomplete. Required before new contracts.', assignedTo: 'Hero', priority: 'high', status: 'backlog', dueDate: null, dateAdded: '2026-03-17' },
+    { id: 'task-003', title: 'Review Purchase Agreement Template', description: 'Needs legal review before signing new clients.', assignedTo: 'Leo', priority: 'medium', status: 'backlog', dueDate: null, dateAdded: '2026-03-17' },
+    { id: 'task-004', title: 'Melbourne Expansion Market Research', description: 'Phase 2 expansion to Melbourne — market research and supplier mapping.', assignedTo: 'Hero', priority: 'medium', status: 'backlog', dueDate: null, dateAdded: '2026-03-17' },
+    { id: 'task-005', title: 'Define Sales → Engineering Handover Process', description: 'No defined process between Sales, Engineering, Operations, Installation.', assignedTo: 'Hero', priority: 'high', status: 'inprogress', dueDate: null, dateAdded: '2026-03-17' }
+  ],
+  reminders: [
+    { id: 'rem-001', text: 'Follow up with Dylan re: next install date', completed: false, dateAdded: '2026-03-17' },
+    { id: 'rem-002', text: 'Check in with Ben about factory compliance certs', completed: false, dateAdded: '2026-03-17' },
+    { id: 'rem-003', text: 'Send Willy updated town planning brief', completed: false, dateAdded: '2026-03-17' }
+  ],
+  events: [],
+  lastUpdated: '2026-03-17T00:00:00.000Z'
+};
+
+const LS_KEY = 'neoliving_mission_control';
+
 // ── State ──
 let state = {
   tasks: [],
@@ -998,36 +1034,36 @@ let state = {
   lastUpdated: ""
 };
 
-const DATA_PATH = './data.json';
-
 // ── Load / Save ──
-async function loadData() {
+function loadData() {
   try {
-    const res = await fetch(DATA_PATH + '?t=' + Date.now());
-    if (res.ok) {
-      const d = await res.json();
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) {
+      const d = JSON.parse(saved);
       state = { tasks: d.tasks || [], reminders: d.reminders || [], events: d.events || [], lastUpdated: d.lastUpdated || '' };
+      console.log('Loaded from localStorage');
+    } else {
+      // First load — use DEFAULT_DATA
+      state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      console.log('Using default data (first load)');
+      saveData(); // persist defaults immediately
     }
   } catch(e) {
-    console.log('Using defaults (fetch failed or file:// mode)');
+    console.warn('localStorage load failed, using defaults:', e);
+    state = JSON.parse(JSON.stringify(DEFAULT_DATA));
   }
   renderAll();
 }
 
 function saveData() {
   state.lastUpdated = new Date().toISOString();
-  // Write to data.json via a POST to a local server if available, else just update in memory
-  // For file:// mode, save is best-effort (no server); in HTTP mode, try POST
-  const body = JSON.stringify(state, null, 2);
-  fetch('/save-data', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body
-  }).catch(() => {
-    // Silently fail in file:// mode — state is in memory
-  });
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  } catch(e) {
+    console.warn('localStorage save failed:', e);
+  }
   // Update sidebar bottom to show sync status
-  document.querySelector('.sidebar-bottom div:last-child').textContent = 'data.json synced ' + new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+  document.querySelector('.sidebar-bottom div:last-child').textContent = 'Saved locally · ' + new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
 }
 
 // ── Navigation ──
@@ -1167,7 +1203,10 @@ function renderKanban() {
       ? '<div class="empty-state" style="padding:16px 8px;font-size:12px">No tasks</div>'
       : colTasks.map(t => buildCard(t, col, todayStr)).join('');
     return `
-      <div class="kanban-col">
+      <div class="kanban-col" data-col="${col.id}"
+           ondragover="onColDragOver(event, this)"
+           ondragleave="onColDragLeave(this)"
+           ondrop="onColDrop(event, '${col.id}', this)">
         <div class="kanban-col-header">
           <span class="kanban-col-title">${col.icon} ${col.label}</span>
           <span class="kanban-count">${colTasks.length}</span>
@@ -1177,6 +1216,9 @@ function renderKanban() {
       </div>
     `;
   }).join('');
+
+  // Attach touch drag handlers after render
+  attachTouchDrag();
 }
 
 function buildCard(t, col, todayStr) {
@@ -1188,7 +1230,10 @@ function buildCard(t, col, todayStr) {
     nextCol ? `<button class="card-move-btn" onclick="moveTask('${t.id}','${nextCol.id}',event)">→ ${nextCol.label}</button>` : ''
   ].join('');
   return `
-    <div class="kanban-card ${t.priority}-border">
+    <div class="kanban-card ${t.priority}-border" draggable="true"
+         data-id="${t.id}"
+         ondragstart="onCardDragStart(event, '${t.id}', this)"
+         ondragend="onCardDragEnd(this)">
       <div class="card-title">${t.title}</div>
       ${t.description ? `<div style="font-size:11px;color:var(--text3);margin-bottom:4px;line-height:1.4">${t.description}</div>` : ''}
       <div class="card-meta">
@@ -1383,6 +1428,140 @@ function saveEvent() {
   saveData(); closeEventModal(); renderCalendar(); renderToday(); updateBadges();
 }
 
+// ── Drag & Drop (HTML5 Desktop) ──
+let dragTaskId = null;
+
+function onCardDragStart(event, taskId, el) {
+  dragTaskId = taskId;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', taskId);
+  // Slight delay so browser captures card before opacity change
+  requestAnimationFrame(() => el.classList.add('dragging'));
+}
+
+function onCardDragEnd(el) {
+  el.classList.remove('dragging');
+  dragTaskId = null;
+  // Remove all drag-over highlights
+  document.querySelectorAll('.kanban-col.drag-over').forEach(c => c.classList.remove('drag-over'));
+}
+
+function onColDragOver(event, colEl) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  colEl.classList.add('drag-over');
+}
+
+function onColDragLeave(colEl) {
+  // Only remove if we actually left the column (not just entered a child)
+  colEl.classList.remove('drag-over');
+}
+
+function onColDrop(event, colId, colEl) {
+  event.preventDefault();
+  colEl.classList.remove('drag-over');
+  const id = event.dataTransfer.getData('text/plain') || dragTaskId;
+  if (!id) return;
+  const task = state.tasks.find(t => t.id === id);
+  if (task && task.status !== colId) {
+    task.status = colId;
+    saveData();
+    renderKanban();
+    renderToday();
+    updateBadges();
+  }
+}
+
+// ── Touch Drag (Mobile) ──
+let touchDragTask = null;
+let touchDragEl = null;
+let touchClone = null;
+let touchOffsetX = 0;
+let touchOffsetY = 0;
+
+function attachTouchDrag() {
+  document.querySelectorAll('.kanban-card[draggable="true"]').forEach(card => {
+    card.addEventListener('touchstart', touchStart, { passive: false });
+    card.addEventListener('touchmove', touchMove, { passive: false });
+    card.addEventListener('touchend', touchEnd, { passive: false });
+  });
+}
+
+function touchStart(e) {
+  const card = e.currentTarget;
+  touchDragTask = card.dataset.id;
+  touchDragEl = card;
+  const touch = e.touches[0];
+  const rect = card.getBoundingClientRect();
+  touchOffsetX = touch.clientX - rect.left;
+  touchOffsetY = touch.clientY - rect.top;
+
+  // Create a visual clone
+  touchClone = card.cloneNode(true);
+  touchClone.style.cssText = `
+    position: fixed;
+    left: ${rect.left}px;
+    top: ${rect.top}px;
+    width: ${rect.width}px;
+    opacity: 0.85;
+    z-index: 9999;
+    pointer-events: none;
+    transform: rotate(2deg) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    transition: none;
+  `;
+  document.body.appendChild(touchClone);
+  card.classList.add('dragging');
+  e.preventDefault();
+}
+
+function touchMove(e) {
+  if (!touchClone) return;
+  const touch = e.touches[0];
+  touchClone.style.left = (touch.clientX - touchOffsetX) + 'px';
+  touchClone.style.top = (touch.clientY - touchOffsetY) + 'px';
+
+  // Highlight column under finger
+  touchClone.style.display = 'none';
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.style.display = '';
+
+  document.querySelectorAll('.kanban-col.drag-over').forEach(c => c.classList.remove('drag-over'));
+  const col = el && el.closest('.kanban-col');
+  if (col) col.classList.add('drag-over');
+
+  e.preventDefault();
+}
+
+function touchEnd(e) {
+  if (!touchClone) return;
+  const touch = e.changedTouches[0];
+
+  touchClone.style.display = 'none';
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.style.display = '';
+
+  document.querySelectorAll('.kanban-col.drag-over').forEach(c => c.classList.remove('drag-over'));
+
+  const col = el && el.closest('.kanban-col');
+  if (col && touchDragTask) {
+    const colId = col.dataset.col;
+    const task = state.tasks.find(t => t.id === touchDragTask);
+    if (task && task.status !== colId) {
+      task.status = colId;
+      saveData();
+      renderKanban();
+      renderToday();
+      updateBadges();
+    }
+  }
+
+  if (touchClone) { touchClone.remove(); touchClone = null; }
+  if (touchDragEl) { touchDragEl.classList.remove('dragging'); touchDragEl = null; }
+  touchDragTask = null;
+  e.preventDefault();
+}
+
 // ── Close modals on overlay click ──
 document.getElementById('task-modal').addEventListener('click', function(e) {
   if (e.target === this) closeTaskModal();
@@ -1397,11 +1576,6 @@ loadData();
 
 // Show topbar action only on relevant pages
 document.getElementById('topbar-action-btn').style.display = 'none';
-
-// Auto-refresh every 60s to pick up Hero's data.json writes
-setInterval(() => {
-  loadData();
-}, 60000);
 </script>
 </body>
 </html>
