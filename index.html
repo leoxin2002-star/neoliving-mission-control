@@ -1008,12 +1008,18 @@
 <script>
 // ── Default Data ──
 const DEFAULT_DATA = {
+  version: "2",
   tasks: [
-    { id: 'task-001', title: 'Obtain AS 2047 Window Certification', description: 'Request cert from factory via David. Required for QBCC approval.', assignedTo: 'Leo', priority: 'high', status: 'inprogress', dueDate: null, dateAdded: '2026-03-17' },
-    { id: 'task-002', title: 'Complete NCC 2022 Documentation', description: 'National Construction Code 2022 compliance docs incomplete. Required before new contracts.', assignedTo: 'Hero', priority: 'high', status: 'backlog', dueDate: null, dateAdded: '2026-03-17' },
-    { id: 'task-003', title: 'Review Purchase Agreement Template', description: 'Needs legal review before signing new clients.', assignedTo: 'Leo', priority: 'medium', status: 'backlog', dueDate: null, dateAdded: '2026-03-17' },
-    { id: 'task-004', title: 'Melbourne Expansion Market Research', description: 'Phase 2 expansion to Melbourne — market research and supplier mapping.', assignedTo: 'Hero', priority: 'medium', status: 'backlog', dueDate: null, dateAdded: '2026-03-17' },
-    { id: 'task-005', title: 'Define Sales → Engineering Handover Process', description: 'No defined process between Sales, Engineering, Operations, Installation.', assignedTo: 'Hero', priority: 'high', status: 'inprogress', dueDate: null, dateAdded: '2026-03-17' }
+    { id: "task-1", title: "Send quote to Vince", description: "Prepare and send pricing quote to Vince by COB today", assignedTo: "Leo", priority: "high", status: "inprogress", dueDate: "2026-03-17", dateAdded: "2026-03-17" },
+    { id: "task-2", title: "Tony site visit follow-up", description: "Follow up with Tony after site visit", assignedTo: "Leo", priority: "high", status: "inprogress", dueDate: "2026-03-17", dateAdded: "2026-03-17" },
+    { id: "task-3", title: "Tell Jackson about Nicky Friday", description: "Let Jackson know Nicky (Nu Design) is coming Friday 1pm with a client. No commission discussion yet.", assignedTo: "Leo", priority: "medium", status: "backlog", dueDate: "2026-03-17", dateAdded: "2026-03-17" },
+    { id: "task-4", title: "Tell Dylan about Aaron", description: "Let Dylan know Aaron has been engaged as installer on a project", assignedTo: "Leo", priority: "medium", status: "done", dueDate: null, dateAdded: "2026-03-17" },
+    { id: "task-5", title: "Contact Tue re IT/CRM/Outlook", description: "Schedule meeting with Tue (Marcus's father) to discuss secure IT integration", assignedTo: "Leo", priority: "medium", status: "inprogress", dueDate: null, dateAdded: "2026-03-17" },
+    { id: "task-6", title: "Fix WhatsApp connection", description: "wacli auth done but unstable. Fix when at Mac mini.", assignedTo: "Hero", priority: "low", status: "backlog", dueDate: null, dateAdded: "2026-03-17" },
+    { id: "task-7", title: "Ben SOP - collect workflow info", description: "Ask Ben questions about his daily workflows to document SOPs by Wednesday", assignedTo: "Hero", priority: "high", status: "inprogress", dueDate: "2026-03-19", dateAdded: "2026-03-17" },
+    { id: "task-8", title: "Add VPN for Catherine", description: "Set up VPN access for Leo's mother Catherine", assignedTo: "Leo", priority: "low", status: "backlog", dueDate: null, dateAdded: "2026-03-17" },
+    { id: "task-9", title: "Window certification AS 2047", description: "URGENT: QBCC already called about this. Get factory test certificates for windows.", assignedTo: "Hero", priority: "high", status: "backlog", dueDate: null, dateAdded: "2026-03-17" },
+    { id: "task-10", title: "Outlook/Teams email setup", description: "Set up Microsoft Graph API access with Tue for Outlook integration", assignedTo: "Leo", priority: "medium", status: "backlog", dueDate: null, dateAdded: "2026-03-17" }
   ],
   reminders: [
     { id: 'rem-001', text: 'Follow up with Dylan re: next install date', completed: false, dateAdded: '2026-03-17' },
@@ -1035,45 +1041,37 @@ let state = {
 };
 
 // ── Load / Save ──
-async function loadData() {
+function loadData() {
   try {
     const saved = localStorage.getItem(LS_KEY);
     if (saved) {
       const d = JSON.parse(saved);
-      state = { tasks: d.tasks || [], reminders: d.reminders || [], events: d.events || [], lastUpdated: d.lastUpdated || '' };
-      console.log('Loaded from localStorage');
-    } else {
-      // First load — try data.json (migration from previous version), then fall back to DEFAULT_DATA
-      let migrated = false;
-      try {
-        const res = await fetch('./data.json?t=' + Date.now());
-        if (res.ok) {
-          const d = await res.json();
-          if (d && (d.tasks || d.reminders || d.events)) {
-            state = { tasks: d.tasks || [], reminders: d.reminders || [], events: d.events || [], lastUpdated: d.lastUpdated || '' };
-            console.log('Migrated from data.json');
-            saveData(); // persist to localStorage going forward
-            migrated = true;
-          }
-        }
-      } catch(fetchErr) {
-        console.log('data.json not available, using defaults');
-      }
-      if (!migrated) {
+      // Version check — if no version or wrong version, reset to DEFAULT_DATA
+      if (!d.version || d.version !== DEFAULT_DATA.version) {
+        console.log('Version mismatch, clearing stale localStorage and using DEFAULT_DATA');
+        localStorage.removeItem(LS_KEY);
         state = JSON.parse(JSON.stringify(DEFAULT_DATA));
-        console.log('Using default data (first load)');
-        saveData(); // persist defaults immediately
+        saveData();
+      } else {
+        state = { tasks: d.tasks || [], reminders: d.reminders || [], events: d.events || [], lastUpdated: d.lastUpdated || '', version: d.version };
+        console.log('Loaded from localStorage (v' + d.version + ')');
       }
+    } else {
+      state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      console.log('No saved data, using DEFAULT_DATA');
+      saveData();
     }
   } catch(e) {
     console.warn('localStorage load failed, using defaults:', e);
     state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    saveData();
   }
   renderAll();
 }
 
 function saveData() {
   state.lastUpdated = new Date().toISOString();
+  state.version = DEFAULT_DATA.version;
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(state));
   } catch(e) {
