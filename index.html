@@ -1,802 +1,1407 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neo Living — Mission Control</title>
-  <style>
-    :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --surface2:  #1c2330;
-      --border:    #30363d;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --accent:    #3b82f6;
-      --accent2:   #1d4ed8;
-      --red:       #f85149;
-      --orange:    #f0883e;
-      --green:     #3fb950;
-      --yellow:    #e3b341;
-      --sidebar-w: 220px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neo Living — Mission Control</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2128;
+    --bg4: #21262d;
+    --border: #30363d;
+    --border2: #3d4450;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --accent: #4f8ef7;
+    --accent2: #388bfd;
+    --green: #3fb950;
+    --red: #f85149;
+    --orange: #d29922;
+    --purple: #bc8cff;
+    --yellow: #e3b341;
+    --sidebar-w: 220px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 14px;
+  }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* ── Sidebar ── */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  .sidebar-logo {
+    padding: 18px 16px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo .logo-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -.3px;
+  }
+  .sidebar-logo .logo-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+  .sidebar-section {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    padding: 4px 16px 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13.5px;
+    border-radius: 0;
+    transition: background .1s, color .1s;
+    user-select: none;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--bg4); color: var(--text); }
+  .nav-item .icon { font-size: 15px; width: 18px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .nav-badge.blue { background: var(--accent); }
+  .nav-badge.green { background: var(--green); }
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .hero-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 4px var(--green);
+  }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
+  /* ── Main content ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  #live-time {
+    font-size: 13px;
+    color: var(--text2);
+    font-variant-numeric: tabular-nums;
+  }
+  .btn {
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg3); border-color: var(--border2); }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 500;
+  }
+  .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+  .btn-sm { padding: 3px 9px; font-size: 12px; }
 
-    /* ── SIDEBAR ─────────────────────────────────── */
-    #sidebar {
-      width: var(--sidebar-w);
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      padding: 0 0 16px 0;
-    }
+  .content-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
 
-    .brand {
-      padding: 20px 16px 14px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .brand-icon {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, var(--accent), #6366f1);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 14px; color: #fff;
-    }
-    .brand-text { line-height: 1.2; }
-    .brand-name { font-size: 13px; font-weight: 600; color: var(--text); }
-    .brand-sub  { font-size: 11px; color: var(--muted); }
+  /* ── Page sections ── */
+  .page { display: none; }
+  .page.active { display: block; }
+  .page.flex-page { display: none; }
+  .page.flex-page.active { display: flex; }
 
-    nav { flex: 1; padding: 12px 8px; }
+  /* ── Today view ── */
+  .today-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .stat-card .stat-val {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-card .stat-label { font-size: 12px; color: var(--text2); }
+  .stat-card.red { border-color: rgba(248,81,73,.4); }
+  .stat-card.red .stat-val { color: var(--red); }
+  .stat-card.blue .stat-val { color: var(--accent); }
+  .stat-card.green .stat-val { color: var(--green); }
 
-    .nav-section-label {
-      font-size: 10px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .08em; color: var(--muted);
-      padding: 10px 8px 4px;
-    }
+  .section-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .section-body { padding: 8px 0; }
+  .list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item:hover { background: var(--bg3); }
 
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 10px; border-radius: 6px;
-      cursor: pointer; font-size: 13px; color: var(--muted);
-      transition: background .15s, color .15s;
-      user-select: none;
-    }
-    .nav-item:hover { background: var(--surface2); color: var(--text); }
-    .nav-item.active { background: var(--accent2); color: #fff; }
-    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-    .nav-badge {
-      margin-left: auto; background: var(--red);
-      color: #fff; font-size: 10px; font-weight: 700;
-      padding: 1px 6px; border-radius: 10px;
-    }
+  /* ── Priority tags ── */
+  .tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    flex-shrink: 0;
+  }
+  .tag-high { background: rgba(248,81,73,.15); color: var(--red); }
+  .tag-medium { background: rgba(210,153,34,.15); color: var(--orange); }
+  .tag-low { background: rgba(78,201,176,.15); color: #4ec9b0; }
+  .tag-leo { background: rgba(79,142,247,.12); color: var(--accent); }
+  .tag-hero { background: rgba(188,140,255,.12); color: var(--purple); }
+  .tag-done { background: rgba(63,185,80,.12); color: var(--green); }
 
-    .sidebar-footer {
-      padding: 12px 16px 0;
-      border-top: 1px solid var(--border);
-    }
-    .sidebar-footer .time {
-      font-size: 11px; color: var(--muted);
-    }
+  /* ── Intelligence feed ── */
+  .intel-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .intel-item:last-child { border-bottom: none; }
+  .intel-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .intel-dot.red { background: var(--red); }
+  .intel-dot.orange { background: var(--orange); }
+  .intel-dot.blue { background: var(--accent); }
+  .intel-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .intel-desc { font-size: 12px; color: var(--text2); }
+  .intel-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .intel-badge.red { background: rgba(248,81,73,.15); color: var(--red); }
+  .intel-badge.orange { background: rgba(210,153,34,.15); color: var(--orange); }
+  .intel-badge.blue { background: rgba(79,142,247,.12); color: var(--accent); }
 
-    /* ── MAIN ────────────────────────────────────── */
-    #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+  /* ── Kanban Board ── */
+  .kanban-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    height: calc(100vh - 120px);
+    overflow: hidden;
+  }
+  .kanban-col {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .kanban-col-header {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg3);
+    flex-shrink: 0;
+  }
+  .kanban-col-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--text2);
+  }
+  .kanban-count {
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0 7px;
+    min-width: 20px;
+    text-align: center;
+  }
+  .kanban-cards {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .kanban-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+    position: relative;
+  }
+  .kanban-card:hover {
+    border-color: var(--border2);
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  .kanban-card.high-border { border-left: 3px solid var(--red); }
+  .kanban-card.medium-border { border-left: 3px solid var(--orange); }
+  .kanban-card.low-border { border-left: 3px solid #4ec9b0; }
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    line-height: 1.35;
+  }
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .card-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .kanban-card:hover .card-actions { opacity: 1; }
+  .card-move-btn {
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .card-move-btn:hover { background: var(--bg2); color: var(--text); }
+  .card-delete-btn {
+    background: rgba(248,81,73,.08);
+    border: 1px solid rgba(248,81,73,.2);
+    color: var(--red);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 11px;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .card-delete-btn:hover { background: rgba(248,81,73,.15); }
+  .due-today {
+    font-size: 10px;
+    color: var(--red);
+    font-weight: 600;
+  }
+  .kanban-add-btn {
+    margin: 0 8px 8px;
+    padding: 7px;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 12px;
+    text-align: center;
+    transition: background .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .kanban-add-btn:hover { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
 
-    .topbar {
-      padding: 16px 28px;
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .topbar-title { font-size: 18px; font-weight: 600; }
-    .topbar-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .topbar-right { display: flex; gap: 8px; align-items: center; }
-    .chip {
-      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--muted);
-    }
-    .chip.red    { background: #2d1b1b; border-color: #6b2020; color: var(--red); }
-    .chip.green  { background: #1a2d1a; border-color: #1f4d1f; color: var(--green); }
+  /* ── Reminders ── */
+  .reminder-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  .reminder-item:last-child { border-bottom: none; }
+  .reminder-item:hover { background: var(--bg3); }
+  .reminder-item input[type="checkbox"] {
+    width: 15px; height: 15px;
+    cursor: pointer;
+    accent-color: var(--green);
+    flex-shrink: 0;
+  }
+  .reminder-text { font-size: 13px; flex: 1; }
+  .reminder-text.done {
+    text-decoration: line-through;
+    color: var(--text3);
+  }
+  .reminder-delete {
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    opacity: 0;
+    transition: opacity .15s, color .15s;
+  }
+  .reminder-item:hover .reminder-delete { opacity: 1; }
+  .reminder-delete:hover { color: var(--red); }
+  .add-reminder-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px 16px;
+  }
+  .add-reminder-row input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .add-reminder-row input:focus { border-color: var(--accent); }
+  .add-reminder-row input::placeholder { color: var(--text3); }
 
-    .content {
-      flex: 1; overflow-y: auto; padding: 24px 28px;
-    }
+  /* ── Calendar ── */
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .calendar-title { font-size: 16px; font-weight: 600; }
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+  .day-col {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-height: 180px;
+    overflow: hidden;
+  }
+  .day-col.today { border-color: var(--accent); }
+  .day-header {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    text-align: center;
+  }
+  .day-name { font-size: 10px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; }
+  .day-num {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text);
+  }
+  .day-col.today .day-num { color: var(--accent); }
+  .day-events { padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .cal-event {
+    background: rgba(79,142,247,.12);
+    border: 1px solid rgba(79,142,247,.25);
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 11px;
+    color: var(--accent);
+    line-height: 1.3;
+    cursor: default;
+  }
+  .cal-event .evt-time { font-size: 10px; opacity: .7; display: block; }
+  .cal-event-delete {
+    float: right;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text3);
+    margin-left: 4px;
+  }
+  .cal-event-delete:hover { color: var(--red); }
 
-    /* ── CARDS ───────────────────────────────────── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-    .card:last-child { margin-bottom: 0; }
-    .card-title {
-      font-size: 13px; font-weight: 600; margin-bottom: 4px;
-    }
-    .card-sub { font-size: 12px; color: var(--muted); }
+  /* ── Activity feed ── */
+  .activity-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(188,140,255,.12);
+    border: 1px solid rgba(188,140,255,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .activity-content { flex: 1; }
+  .activity-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .activity-time { font-size: 11px; color: var(--text3); }
 
-    .card.urgent   { border-left: 3px solid var(--red); }
-    .card.pending  { border-left: 3px solid var(--orange); }
-    .card.done     { border-left: 3px solid var(--green); opacity: .7; }
-    .card.info     { border-left: 3px solid var(--accent); }
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 460px;
+    max-width: calc(100vw - 40px);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; color: var(--text2); margin-bottom: 5px; display: block; font-weight: 500; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s;
+    font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-select option { background: var(--bg3); }
+  .form-textarea { resize: vertical; min-height: 70px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
 
-    /* ── GRID ────────────────────────────────────── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 
-    @media (max-width: 900px) {
-      .grid-3 { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 640px) {
-      #sidebar { width: 60px; }
-      .nav-item span, .brand-text, .nav-section-label, .sidebar-footer .time { display: none; }
-      .content { padding: 16px; }
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .topbar { padding: 12px 16px; }
-    }
+  /* ── Two column layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+    align-items: start;
+  }
 
-    /* ── STAT TILES ──────────────────────────────── */
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-    @media (max-width: 900px) { .stats { grid-template-columns: 1fr 1fr; } }
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    #sidebar { width: 200px; min-width: 200px; }
+    .kanban-board { grid-template-columns: repeat(2, 1fr); overflow-y: auto; }
+    .week-grid { grid-template-columns: repeat(4, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .today-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    #sidebar { display: none; }
+    .kanban-board { grid-template-columns: 1fr 1fr; }
+    .week-grid { grid-template-columns: repeat(3, 1fr); }
+    .today-grid { grid-template-columns: 1fr; }
+  }
 
-    .stat-tile {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .stat-tile .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-    .stat-tile .value { font-size: 28px; font-weight: 700; margin: 4px 0 0; line-height: 1; }
-    .stat-tile .value.red    { color: var(--red); }
-    .stat-tile .value.orange { color: var(--orange); }
-    .stat-tile .value.green  { color: var(--green); }
-    .stat-tile .value.blue   { color: var(--accent); }
-
-    /* ── SECTION HEADER ──────────────────────────── */
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px; margin-top: 24px;
-    }
-    .section-header:first-child { margin-top: 0; }
-    .section-header h2 { font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-
-    /* ── TEAM CARDS ──────────────────────────────── */
-    .team-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .avatar {
-      width: 38px; height: 38px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 14px; color: #fff;
-      flex-shrink: 0;
-    }
-    .team-card-top { display: flex; align-items: center; gap: 10px; }
-    .team-card-name { font-size: 14px; font-weight: 600; }
-    .team-card-role { font-size: 11px; color: var(--muted); }
-    .team-card-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 11px; color: var(--muted);
-    }
-    .status-dot {
-      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-      margin-right: 5px;
-    }
-    .dot-green  { background: var(--green); }
-    .dot-orange { background: var(--orange); }
-    .dot-muted  { background: var(--muted); }
-
-    /* ── PROJECT LINK CARDS ──────────────────────── */
-    .project-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      text-decoration: none;
-      color: var(--text);
-      display: flex; flex-direction: column; gap: 6px;
-      transition: border-color .15s, background .15s;
-      cursor: pointer;
-    }
-    .project-card:hover { border-color: var(--accent); background: var(--surface2); }
-    .project-card .project-icon { font-size: 24px; margin-bottom: 4px; }
-    .project-card .project-name { font-size: 15px; font-weight: 600; }
-    .project-card .project-desc { font-size: 12px; color: var(--muted); }
-    .project-card .project-url  { font-size: 11px; color: var(--accent); margin-top: 6px; }
-    .project-badge {
-      align-self: flex-start; padding: 2px 8px; border-radius: 20px;
-      font-size: 10px; font-weight: 700; text-transform: uppercase;
-      background: var(--surface2); border: 1px solid var(--border);
-      color: var(--muted);
-    }
-    .project-badge.live { background: #1a2d1a; border-color: #1f4d1f; color: var(--green); }
-    .project-badge.tbd  { background: #2d2416; border-color: #5c4418; color: var(--orange); }
-
-    /* ── INSIGHT CARDS ───────────────────────────── */
-    .insight-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-    .insight-card.red-card    { border-left: 3px solid var(--red);    background: #1a1010; }
-    .insight-card.orange-card { border-left: 3px solid var(--orange); background: #1a1508; }
-    .insight-card.blue-card   { border-left: 3px solid var(--accent); background: #0d1829; }
-    .insight-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-    .insight-body  { font-size: 12px; color: var(--muted); line-height: 1.6; }
-
-    /* ── MEETING CARD ────────────────────────────── */
-    .meeting-card {
-      display: flex; align-items: flex-start; gap: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 10px;
-    }
-    .meeting-time-block {
-      text-align: center; flex-shrink: 0; width: 52px;
-    }
-    .meeting-time-block .mt { font-size: 18px; font-weight: 700; color: var(--accent); line-height: 1; }
-    .meeting-time-block .md { font-size: 10px; color: var(--muted); }
-    .meeting-divider { width: 1px; background: var(--border); align-self: stretch; }
-    .meeting-body { flex: 1; }
-    .meeting-who  { font-size: 14px; font-weight: 600; }
-    .meeting-what { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .meeting-tag  {
-      display: inline-block; margin-top: 8px;
-      padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;
-      background: rgba(59,130,246,.15); color: var(--accent); border: 1px solid rgba(59,130,246,.3);
-    }
-
-    /* ── REMINDER ITEM ───────────────────────────── */
-    .reminder-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 12px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 8px;
-    }
-    .reminder-item .ri-dot {
-      width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
-    }
-    .reminder-item .ri-text { font-size: 13px; line-height: 1.5; }
-    .reminder-item .ri-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-    /* ── VIEWS ───────────────────────────────────── */
-    .view { display: none; }
-    .view.active { display: block; }
-
-    /* ── SCROLLBAR ───────────────────────────────── */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-    /* ── GREETING ────────────────────────────────── */
-    .greeting-block {
-      margin-bottom: 24px;
-    }
-    .greeting-block h1 {
-      font-size: 24px; font-weight: 700;
-    }
-    .greeting-block .date-line {
-      font-size: 13px; color: var(--muted); margin-top: 4px;
-    }
-  </style>
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 24px;
+    color: var(--text3);
+    font-size: 12px;
+  }
+</style>
 </head>
 <body>
 
-<!-- ───────────────────── SIDEBAR ───────────────────── -->
-<div id="sidebar">
-  <div class="brand">
-    <div class="brand-icon">NL</div>
-    <div class="brand-text">
-      <div class="brand-name">Neo Living</div>
-      <div class="brand-sub">Mission Control</div>
+<!-- Sidebar -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-name">Neo Living</div>
+    <div class="logo-sub">Mission Control V2</div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Overview</div>
+    <div class="nav-item active" onclick="showPage('today')" id="nav-today">
+      <span class="icon">📅</span> Today
+    </div>
+    <div class="nav-item" onclick="showPage('intelligence')" id="nav-intelligence">
+      <span class="icon">🧠</span> Intelligence
+    </div>
+    <div class="nav-item" onclick="showPage('activity')" id="nav-activity">
+      <span class="icon">⚡</span> Activity Feed
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Work</div>
+    <div class="nav-item" onclick="showPage('tasks')" id="nav-tasks">
+      <span class="icon">🗂</span> Task Board
+      <span class="nav-badge" id="badge-tasks">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('reminders')" id="nav-reminders">
+      <span class="icon">🔔</span> Reminders
+      <span class="nav-badge blue" id="badge-reminders">0</span>
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Planning</div>
+    <div class="nav-item" onclick="showPage('calendar')" id="nav-calendar">
+      <span class="icon">🗓</span> Calendar
+    </div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="hero-status">
+      <div class="status-dot"></div>
+      Hero is online
+    </div>
+    <div>data.json synced</div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div id="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Today</div>
+    <div class="topbar-right">
+      <span id="live-time"></span>
+      <button class="btn btn-primary btn-sm" id="topbar-action-btn" onclick="handleTopbarAction()">+ Add Task</button>
     </div>
   </div>
 
-  <nav>
-    <div class="nav-section-label">Workspace</div>
-    <div class="nav-item active" data-view="today">
-      <span class="icon">🏠</span><span>Today</span>
-    </div>
-    <div class="nav-item" data-view="projects">
-      <span class="icon">📋</span><span>Projects</span>
-    </div>
-    <div class="nav-item" data-view="team">
-      <span class="icon">👥</span><span>Team</span>
+  <div class="content-area">
+
+    <!-- TODAY PAGE -->
+    <div class="page active" id="page-today">
+      <div class="today-grid" style="margin-bottom:20px">
+        <div class="stat-card red">
+          <div class="stat-val" id="stat-urgent">0</div>
+          <div class="stat-label">Urgent Tasks</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-val" id="stat-meetings">0</div>
+          <div class="stat-label">Meetings Today</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-val" id="stat-tasks-due">0</div>
+          <div class="stat-label">Tasks Due Today</div>
+        </div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="section-card">
+            <div class="section-header">
+              <span class="section-title">📅 Today's Meetings</span>
+            </div>
+            <div class="section-body" id="today-meetings">
+              <div class="empty-state">No meetings today</div>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="section-header">
+              <span class="section-title">🔥 Tasks Due Today</span>
+            </div>
+            <div class="section-body" id="today-tasks">
+              <div class="empty-state">No tasks due today</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="section-card">
+            <div class="section-header">
+              <span class="section-title">🧠 Intelligence</span>
+            </div>
+            <div class="section-body">
+              <div class="intel-item">
+                <div class="intel-dot red"></div>
+                <div class="intel-content">
+                  <div class="intel-title">AS 2047 Window Certification</div>
+                  <div class="intel-desc">Window compliance cert missing for imported modules</div>
+                </div>
+                <span class="intel-badge red">URGENT</span>
+              </div>
+              <div class="intel-item">
+                <div class="intel-dot red"></div>
+                <div class="intel-content">
+                  <div class="intel-title">NCC 2022 Documentation</div>
+                  <div class="intel-desc">National Construction Code docs incomplete</div>
+                </div>
+                <span class="intel-badge red">URGENT</span>
+              </div>
+              <div class="intel-item">
+                <div class="intel-dot orange"></div>
+                <div class="intel-content">
+                  <div class="intel-title">Purchase Agreement Template</div>
+                  <div class="intel-desc">Template needs legal review before use</div>
+                </div>
+                <span class="intel-badge orange">ACTION</span>
+              </div>
+              <div class="intel-item">
+                <div class="intel-dot blue"></div>
+                <div class="intel-content">
+                  <div class="intel-title">Melbourne Expansion Status</div>
+                  <div class="intel-desc">Phase 2 expansion planning in progress</div>
+                </div>
+                <span class="intel-badge blue">INFO</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="nav-section-label">Operations</div>
-    <div class="nav-item" data-view="meetings">
-      <span class="icon">📅</span><span>Meetings Today</span>
-      <span class="nav-badge">1</span>
+    <!-- INTELLIGENCE PAGE -->
+    <div class="page" id="page-intelligence">
+      <div class="section-card">
+        <div class="section-header">
+          <span class="section-title">Intelligence Feed</span>
+        </div>
+        <div class="section-body">
+          <div class="intel-item">
+            <div class="intel-dot red"></div>
+            <div class="intel-content">
+              <div class="intel-title">AS 2047 Window Certification</div>
+              <div class="intel-desc">Window compliance cert missing for imported modules. Required for QBCC approval. Action: request cert from factory via David.</div>
+            </div>
+            <span class="intel-badge red">URGENT</span>
+          </div>
+          <div class="intel-item">
+            <div class="intel-dot red"></div>
+            <div class="intel-content">
+              <div class="intel-title">NCC 2022 Documentation</div>
+              <div class="intel-desc">National Construction Code 2022 compliance documentation is incomplete. Required before any new contracts.</div>
+            </div>
+            <span class="intel-badge red">URGENT</span>
+          </div>
+          <div class="intel-item">
+            <div class="intel-dot orange"></div>
+            <div class="intel-content">
+              <div class="intel-title">Purchase Agreement Template</div>
+              <div class="intel-desc">Current template is outdated. Needs legal review before signing new clients.</div>
+            </div>
+            <span class="intel-badge orange">ACTION</span>
+          </div>
+          <div class="intel-item">
+            <div class="intel-dot blue"></div>
+            <div class="intel-content">
+              <div class="intel-title">Melbourne Expansion Status</div>
+              <div class="intel-desc">Phase 2 expansion to Melbourne in early planning. Next step: market research and supplier mapping.</div>
+            </div>
+            <span class="intel-badge blue">INFO</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="nav-item" data-view="reminders">
-      <span class="icon">🔔</span><span>Reminders</span>
-      <span class="nav-badge">5</span>
-    </div>
-    <div class="nav-item" data-view="intel">
-      <span class="icon">🧠</span><span>Intelligence</span>
-      <span class="nav-badge">2</span>
-    </div>
-  </nav>
 
-  <div class="sidebar-footer">
-    <div class="time" id="clock">—</div>
+    <!-- ACTIVITY FEED PAGE -->
+    <div class="page" id="page-activity">
+      <div class="section-card">
+        <div class="section-header">
+          <span class="section-title">⚡ Hero Activity Log</span>
+        </div>
+        <div class="section-body">
+          <div class="activity-item">
+            <div class="activity-icon">🦾</div>
+            <div class="activity-content">
+              <div class="activity-title">Built Mission Control V2</div>
+              <div class="activity-time">Today · 11:09am</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">🦾</div>
+            <div class="activity-content">
+              <div class="activity-title">Sent Ben SOP opening message</div>
+              <div class="activity-time">Today · 9:24am</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">🦾</div>
+            <div class="activity-content">
+              <div class="activity-title">Built Mission Control V1</div>
+              <div class="activity-time">Today · 9:18am</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">🦾</div>
+            <div class="activity-content">
+              <div class="activity-title">Sent Noel/CSA meeting brief</div>
+              <div class="activity-time">Yesterday · 2:29pm</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">🦾</div>
+            <div class="activity-content">
+              <div class="activity-title">Built Kane meeting brief</div>
+              <div class="activity-time">Yesterday · 11:27am</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">🦾</div>
+            <div class="activity-content">
+              <div class="activity-title">Processed ChatGPT history (1111 conversations)</div>
+              <div class="activity-time">Yesterday · 9:23pm</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS PAGE -->
+    <div class="page" id="page-tasks">
+      <div class="kanban-board" id="kanban-board">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+
+    <!-- REMINDERS PAGE -->
+    <div class="page" id="page-reminders">
+      <div class="two-col">
+        <div>
+          <div class="section-card">
+            <div class="section-header">
+              <span class="section-title">🔔 Active Reminders</span>
+            </div>
+            <div id="reminders-active-list"></div>
+            <div class="add-reminder-row">
+              <input type="text" id="new-reminder-input" placeholder="Add a reminder… press Enter" onkeydown="handleReminderKeydown(event)" />
+              <button class="btn btn-sm btn-primary" onclick="addReminder()">Add</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="section-card">
+            <div class="section-header">
+              <span class="section-title">✅ Completed Today</span>
+            </div>
+            <div id="reminders-done-list">
+              <div class="empty-state">Nothing completed yet</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR PAGE -->
+    <div class="page" id="page-calendar">
+      <div class="calendar-header">
+        <div>
+          <div class="calendar-title" id="calendar-week-label"></div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Current week</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openEventModal()">+ Add Event</button>
+      </div>
+      <div class="week-grid" id="week-grid">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+
+  </div><!-- /content-area -->
+</div><!-- /main -->
+
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-title" id="task-modal-title">New Task</div>
+    <div class="form-group">
+      <label class="form-label">Title *</label>
+      <input type="text" class="form-input" id="task-title" placeholder="Task title" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-textarea" id="task-desc" placeholder="Optional details…"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Assigned To</label>
+        <select class="form-select" id="task-assigned">
+          <option value="Leo">Leo</option>
+          <option value="Hero">Hero</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select class="form-select" id="task-priority">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="task-status">
+          <option value="backlog">Backlog</option>
+          <option value="inprogress">In Progress</option>
+          <option value="review">Review</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Due Date</label>
+        <input type="date" class="form-input" id="task-due" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
+    </div>
   </div>
 </div>
 
-<!-- ───────────────────── MAIN ───────────────────── -->
-<div id="main">
-
-  <!-- TOPBAR -->
-  <div class="topbar">
-    <div>
-      <div class="topbar-title" id="topbar-title">Today</div>
-      <div class="topbar-sub" id="topbar-sub">Good morning, Leo</div>
+<!-- Add Event Modal -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <div class="modal-title">New Event</div>
+    <div class="form-group">
+      <label class="form-label">Event Title *</label>
+      <input type="text" class="form-input" id="event-title" placeholder="Event title" />
     </div>
-    <div class="topbar-right">
-      <span class="chip red">2 Urgent</span>
-      <span class="chip">5 Pending</span>
-      <span class="chip green">Tue 17 Mar 2026</span>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" class="form-input" id="event-date" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input type="time" class="form-input" id="event-time" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <input type="text" class="form-input" id="event-desc" placeholder="Optional" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeEventModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
     </div>
   </div>
-
-  <div class="content">
-
-    <!-- ════════════ TODAY ════════════ -->
-    <div class="view active" id="view-today">
-
-      <div class="greeting-block">
-        <h1 id="greeting">Good morning, Leo 👋</h1>
-        <div class="date-line" id="date-line">Loading date…</div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats">
-        <div class="stat-tile">
-          <div class="label">Active Projects</div>
-          <div class="value blue">6</div>
-        </div>
-        <div class="stat-tile">
-          <div class="label">Meetings Today</div>
-          <div class="value orange">1</div>
-        </div>
-        <div class="stat-tile">
-          <div class="label">Urgent Flags</div>
-          <div class="value red">2</div>
-        </div>
-        <div class="stat-tile">
-          <div class="label">Pending Actions</div>
-          <div class="value orange">5</div>
-        </div>
-      </div>
-
-      <!-- Today's meetings snapshot -->
-      <div class="section-header"><h2>📅 Today's Meetings</h2></div>
-      <div class="meeting-card">
-        <div class="meeting-time-block">
-          <div class="mt">1PM</div>
-          <div class="md">Today</div>
-        </div>
-        <div class="meeting-divider"></div>
-        <div class="meeting-body">
-          <div class="meeting-who">Kane</div>
-          <div class="meeting-what">Marketing meeting — strategy &amp; channels review</div>
-          <div class="meeting-tag">Marketing</div>
-        </div>
-      </div>
-
-      <!-- Today's reminders snapshot -->
-      <div class="section-header"><h2>🔔 Active Reminders</h2></div>
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--red)"></div>
-        <div>
-          <div class="ri-text">Add VPN for Catherine (mother)</div>
-          <div class="ri-label">Pending setup · Operations</div>
-        </div>
-      </div>
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--orange)"></div>
-        <div>
-          <div class="ri-text">WhatsApp connection unstable — fix when at Mac</div>
-          <div class="ri-label">Connectivity · Engineering</div>
-        </div>
-      </div>
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--orange)"></div>
-        <div>
-          <div class="ri-text">Outlook/Teams email setup pending</div>
-          <div class="ri-label">IT setup · Pending</div>
-        </div>
-      </div>
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--yellow)"></div>
-        <div>
-          <div class="ri-text">Ben SOP project — target Wednesday</div>
-          <div class="ri-label">COO · China team</div>
-        </div>
-      </div>
-
-      <!-- Intelligence snapshot -->
-      <div class="section-header"><h2>🚨 Top Flags from Hero</h2></div>
-      <div class="insight-card red-card">
-        <div class="insight-title">🚨 AS 2047 Window Certification</div>
-        <div class="insight-body">QBCC already called. Active risk on <strong>all installed homes</strong>. Documentation must be collected immediately.</div>
-      </div>
-      <div class="insight-card red-card">
-        <div class="insight-title">🚨 NCC 2022 Documentation</div>
-        <div class="insight-body">Certifier rejected NCC 2019 references on active projects. Needs immediate attention to avoid project delays.</div>
-      </div>
-
-    </div>
-
-    <!-- ════════════ PROJECTS ════════════ -->
-    <div class="view" id="view-projects">
-      <div class="section-header" style="margin-top:0"><h2>📋 Tools &amp; Systems</h2></div>
-
-      <div class="grid-3">
-        <a class="project-card" href="http://192.168.0.208:8080/neoliving-kanban.html" target="_blank">
-          <div class="project-icon">🗂️</div>
-          <span class="project-badge live">Live</span>
-          <div class="project-name">Project Kanban</div>
-          <div class="project-desc">Track all active jobs, stages, and blockers across the Neo Living pipeline.</div>
-          <div class="project-url">→ neoliving-kanban.html</div>
-        </a>
-
-        <a class="project-card" href="http://192.168.0.208:8080/neoliving-crm.html" target="_blank">
-          <div class="project-icon">🤝</div>
-          <span class="project-badge live">Live</span>
-          <div class="project-name">CRM</div>
-          <div class="project-desc">Client relationships, lead pipeline, and contact management.</div>
-          <div class="project-url">→ neoliving-crm.html</div>
-        </a>
-
-        <a class="project-card" href="http://192.168.0.208:8080/neoliving-cashflow-nsw.html" target="_blank">
-          <div class="project-icon">💰</div>
-          <span class="project-badge tbd">TBD</span>
-          <div class="project-name">Cashflow — NSW</div>
-          <div class="project-desc">NSW cashflow tracker and project financials. File may not exist yet.</div>
-          <div class="project-url">→ neoliving-cashflow-nsw.html</div>
-        </a>
-      </div>
-
-      <div class="section-header"><h2>📊 Coming Soon</h2></div>
-      <div class="card info">
-        <div class="card-title">Power BI Dashboard</div>
-        <div class="card-sub">Director-level analytics for Leo &amp; Marcus — connect to Microsoft 365.</div>
-      </div>
-      <div class="card info">
-        <div class="card-title">Compliance Tracker</div>
-        <div class="card-sub">AS 2047, NCC 2022, QBCC — all certifications and outstanding items in one place.</div>
-      </div>
-    </div>
-
-    <!-- ════════════ TEAM ════════════ -->
-    <div class="view" id="view-team">
-
-      <div class="section-header" style="margin-top:0"><h2>🇦🇺 Australia</h2></div>
-      <div class="grid-3">
-        <!-- Leo -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#3b82f6,#6366f1)">L</div>
-            <div>
-              <div class="team-card-name">Leo Xin</div>
-              <div class="team-card-role">Co-founder &amp; CEO</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-green"></span>Active</span>
-            <span>You</span>
-          </div>
-        </div>
-        <!-- Marcus -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">M</div>
-            <div>
-              <div class="team-card-name">Marcus</div>
-              <div class="team-card-role">Co-founder &amp; CEO</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-green"></span>Active</span>
-            <span>+61 404 599 096</span>
-          </div>
-        </div>
-        <!-- Jackson -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#10b981,#3b82f6)">J</div>
-            <div>
-              <div class="team-card-name">Jackson</div>
-              <div class="team-card-role">Sales</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-orange"></span>Number needed</span>
-            <span>Reminder: Nicky Fri</span>
-          </div>
-        </div>
-        <!-- Ethan -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">E</div>
-            <div>
-              <div class="team-card-name">Ethan</div>
-              <div class="team-card-role">Operations Manager</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-orange"></span>Number needed</span>
-            <span>—</span>
-          </div>
-        </div>
-        <!-- Dunn -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">D</div>
-            <div>
-              <div class="team-card-name">Dunn</div>
-              <div class="team-card-role">Engineering</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-orange"></span>Number needed</span>
-            <span>—</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-header"><h2>🇨🇳 China</h2></div>
-      <div class="grid-3">
-        <!-- Ben -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#dc2626,#f97316)">B</div>
-            <div>
-              <div class="team-card-name">Ben</div>
-              <div class="team-card-role">COO · New Top Qingdao</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-green"></span>Active</span>
-            <span>SOP target: Wed</span>
-          </div>
-        </div>
-        <!-- David -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#7c3aed,#3b82f6)">D</div>
-            <div>
-              <div class="team-card-name">David</div>
-              <div class="team-card-role">Engineering · China</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-green"></span>Active</span>
-            <span>Reviews Dunn drawings</span>
-          </div>
-        </div>
-        <!-- Catherine -->
-        <div class="team-card">
-          <div class="team-card-top">
-            <div class="avatar" style="background:linear-gradient(135deg,#ec4899,#8b5cf6)">C</div>
-            <div>
-              <div class="team-card-name">Catherine</div>
-              <div class="team-card-role">Accounting · China</div>
-            </div>
-          </div>
-          <div class="team-card-footer">
-            <span><span class="status-dot dot-muted"></span>VPN needed</span>
-            <span>Leo's mother</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ════════════ MEETINGS ════════════ -->
-    <div class="view" id="view-meetings">
-
-      <div class="section-header" style="margin-top:0"><h2>📅 Scheduled — Tuesday 17 March 2026</h2></div>
-
-      <div class="meeting-card">
-        <div class="meeting-time-block">
-          <div class="mt">1PM</div>
-          <div class="md">Today</div>
-        </div>
-        <div class="meeting-divider"></div>
-        <div class="meeting-body">
-          <div class="meeting-who">Kane</div>
-          <div class="meeting-what">Marketing meeting — strategy &amp; channels review</div>
-          <div class="meeting-tag">Marketing</div>
-        </div>
-      </div>
-
-      <div class="section-header"><h2>🔁 Follow-up Reminders</h2></div>
-
-      <div class="card pending">
-        <div class="card-title">Jackson — Nicky Friday</div>
-        <div class="card-sub">Follow up with Jackson re: Nicky. Target: this Friday.</div>
-      </div>
-      <div class="card urgent">
-        <div class="card-title">Dylan — Aaron Conflict</div>
-        <div class="card-sub">Conflict between Dylan and Aaron. Needs resolution soon.</div>
-      </div>
-      <div class="card pending">
-        <div class="card-title">Tuesday — IT / CRM</div>
-        <div class="card-sub">IT setup and CRM review meeting — check status/schedule.</div>
-      </div>
-    </div>
-
-    <!-- ════════════ REMINDERS ════════════ -->
-    <div class="view" id="view-reminders">
-
-      <div class="section-header" style="margin-top:0"><h2>🔴 Urgent</h2></div>
-
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--red)"></div>
-        <div>
-          <div class="ri-text">Add VPN for Catherine (mother)</div>
-          <div class="ri-label">Required for China team access · Operations</div>
-        </div>
-      </div>
-
-      <div class="section-header"><h2>🟠 Pending</h2></div>
-
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--orange)"></div>
-        <div>
-          <div class="ri-text">WhatsApp connection unstable</div>
-          <div class="ri-label">Fix when at Mac · Engineering / Connectivity</div>
-        </div>
-      </div>
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--orange)"></div>
-        <div>
-          <div class="ri-text">Outlook / Teams email setup pending</div>
-          <div class="ri-label">IT setup · China team onboarding</div>
-        </div>
-      </div>
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--yellow)"></div>
-        <div>
-          <div class="ri-text">Jackson, Ethan &amp; Dunn phone numbers still needed</div>
-          <div class="ri-label">Contact directory · Admin</div>
-        </div>
-      </div>
-      <div class="reminder-item">
-        <div class="ri-dot" style="background:var(--yellow)"></div>
-        <div>
-          <div class="ri-text">Ben SOP project — target Wednesday</div>
-          <div class="ri-label">COO · New Top Qingdao · China operations</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ════════════ INTELLIGENCE ════════════ -->
-    <div class="view" id="view-intel">
-      <div class="section-header" style="margin-top:0">
-        <h2>🧠 Neo Living Insights from Hero</h2>
-      </div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">
-        Strategic flags surfaced from business analysis. Updated manually — live AI feed coming soon.
-      </p>
-
-      <div class="insight-card red-card">
-        <div class="insight-title">🚨 AS 2047 Window Certification</div>
-        <div class="insight-body">
-          QBCC has already called about this. Window products must carry AS 2047 certification documentation — this is an <strong>active risk on all installed homes</strong>. 
-          Collect certificates from factory immediately and attach to each project file. Do not install further windows until resolved.
-        </div>
-      </div>
-
-      <div class="insight-card red-card">
-        <div class="insight-title">🚨 NCC 2022 Documentation</div>
-        <div class="insight-body">
-          A certifier rejected documentation citing NCC 2019 references on active projects. All specs, drawings, and compliance statements must reference <strong>NCC 2022</strong>. 
-          Audit current project docs with Dunn and David. Flag affected projects to Ethan.
-        </div>
-      </div>
-
-      <div class="insight-card orange-card">
-        <div class="insight-title">📋 Purchase Agreement Template</div>
-        <div class="insight-body">
-          A purchase agreement template already exists but has not been formally adopted. Formalise it into a standard document reviewed by legal/Marcus. 
-          Should cover: deposit structure, delivery timeline, compliance conditions, variation clauses.
-        </div>
-      </div>
-
-      <div class="insight-card blue-card">
-        <div class="insight-title">🏙️ Melbourne Expansion</div>
-        <div class="insight-body">
-          Budget: <strong>$93,000</strong>. Current equity split: Sergio 37%, Andi 12%. 
-          Define project milestones, equity agreement, and expansion playbook before committing further capital. Coordinate with Leo &amp; Marcus.
-        </div>
-      </div>
-
-    </div>
-
-  </div><!-- /content -->
-</div><!-- /main -->
+</div>
 
 <script>
-  // ── Clock & date ──────────────────────────────────────────────
-  function updateClock() {
-    const now = new Date();
-    const t = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true });
-    document.getElementById('clock').textContent = t + ' AEST';
+// ── State ──
+let state = {
+  tasks: [],
+  reminders: [],
+  events: [],
+  lastUpdated: ""
+};
 
-    const d = now.toLocaleDateString('en-AU', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
-    document.getElementById('date-line').textContent = d;
+const DATA_PATH = './data.json';
 
-    const h = now.getHours();
-    let gr = 'Good evening';
-    if (h < 12) gr = 'Good morning';
-    else if (h < 17) gr = 'Good afternoon';
-    document.getElementById('greeting').textContent = `${gr}, Leo 👋`;
-    document.getElementById('topbar-sub').textContent = `${gr}, Leo`;
+// ── Load / Save ──
+async function loadData() {
+  try {
+    const res = await fetch(DATA_PATH + '?t=' + Date.now());
+    if (res.ok) {
+      const d = await res.json();
+      state = { tasks: d.tasks || [], reminders: d.reminders || [], events: d.events || [], lastUpdated: d.lastUpdated || '' };
+    }
+  } catch(e) {
+    console.log('Using defaults (fetch failed or file:// mode)');
   }
-  updateClock();
-  setInterval(updateClock, 30000);
+  renderAll();
+}
 
-  // ── Navigation ────────────────────────────────────────────────
-  const navItems = document.querySelectorAll('.nav-item[data-view]');
-  const views    = document.querySelectorAll('.view');
-  const titles   = {
-    today:     'Today',
-    projects:  'Projects',
-    team:      'Team',
-    meetings:  'Meetings Today',
-    reminders: 'Active Reminders',
-    intel:     'Intelligence Feed',
-  };
-
-  navItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const target = item.dataset.view;
-
-      navItems.forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-
-      views.forEach(v => v.classList.remove('active'));
-      document.getElementById('view-' + target).classList.add('active');
-
-      document.getElementById('topbar-title').textContent = titles[target] || target;
-    });
+function saveData() {
+  state.lastUpdated = new Date().toISOString();
+  // Write to data.json via a POST to a local server if available, else just update in memory
+  // For file:// mode, save is best-effort (no server); in HTTP mode, try POST
+  const body = JSON.stringify(state, null, 2);
+  fetch('/save-data', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body
+  }).catch(() => {
+    // Silently fail in file:// mode — state is in memory
   });
+  // Update sidebar bottom to show sync status
+  document.querySelector('.sidebar-bottom div:last-child').textContent = 'data.json synced ' + new Date().toLocaleTimeString('en-AU', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Navigation ──
+let currentPage = 'today';
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  currentPage = name;
+
+  const titles = { today:'Today', intelligence:'Intelligence', activity:'Activity Feed', tasks:'Task Board', reminders:'Reminders', calendar:'Calendar' };
+  document.getElementById('topbar-title').textContent = titles[name] || name;
+
+  const actionLabels = { tasks:'+ Add Task', reminders:'+ Add Reminder', calendar:'+ Add Event' };
+  const btn = document.getElementById('topbar-action-btn');
+  btn.textContent = actionLabels[name] || '+ Add Task';
+  btn.style.display = ['tasks','reminders','calendar'].includes(name) ? 'block' : 'none';
+
+  if (name === 'calendar') renderCalendar();
+  if (name === 'tasks') renderKanban();
+  if (name === 'reminders') renderReminders();
+  if (name === 'today') renderToday();
+}
+
+function handleTopbarAction() {
+  if (currentPage === 'tasks') openTaskModal();
+  else if (currentPage === 'reminders') document.getElementById('new-reminder-input').focus();
+  else if (currentPage === 'calendar') openEventModal();
+}
+
+// ── Live clock ──
+function startClock() {
+  function tick() {
+    const now = new Date();
+    document.getElementById('live-time').textContent =
+      now.toLocaleDateString('en-AU', {weekday:'short', day:'numeric', month:'short'}) + ' · ' +
+      now.toLocaleTimeString('en-AU', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ── Utility ──
+function today() {
+  return new Date().toISOString().slice(0,10);
+}
+function uid() {
+  return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+}
+function fmtTime(t) {
+  if (!t) return '';
+  const [h,m] = t.split(':');
+  const d = new Date(); d.setHours(+h, +m);
+  return d.toLocaleTimeString('en-AU', {hour:'numeric', minute:'2-digit'});
+}
+
+// ── Render all ──
+function renderAll() {
+  renderKanban();
+  renderReminders();
+  renderCalendar();
+  renderToday();
+  updateBadges();
+}
+
+// ── BADGES ──
+function updateBadges() {
+  const urgentActive = state.tasks.filter(t => t.priority === 'high' && t.status !== 'done').length;
+  document.getElementById('badge-tasks').textContent = urgentActive;
+  document.getElementById('badge-tasks').style.display = urgentActive ? '' : 'none';
+
+  const activeRem = state.reminders.filter(r => !r.completed).length;
+  document.getElementById('badge-reminders').textContent = activeRem;
+  document.getElementById('badge-reminders').style.display = activeRem ? '' : 'none';
+}
+
+// ── TODAY ──
+function renderToday() {
+  const todayStr = today();
+  const todayMeetings = state.events.filter(e => e.date === todayStr);
+  const todayTasks = state.tasks.filter(t => t.dueDate === todayStr && t.status !== 'done');
+  const urgentCount = state.tasks.filter(t => t.priority === 'high' && t.status !== 'done').length;
+
+  document.getElementById('stat-urgent').textContent = urgentCount;
+  document.getElementById('stat-meetings').textContent = todayMeetings.length;
+  document.getElementById('stat-tasks-due').textContent = todayTasks.length;
+
+  // Meetings
+  const meetEl = document.getElementById('today-meetings');
+  if (todayMeetings.length === 0) {
+    meetEl.innerHTML = '<div class="empty-state">No meetings today</div>';
+  } else {
+    meetEl.innerHTML = todayMeetings.sort((a,b) => (a.time||'').localeCompare(b.time||'')).map(e => `
+      <div class="list-item">
+        <span>📅</span>
+        <div>
+          <div style="font-size:13px;font-weight:500">${e.title}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${e.time ? fmtTime(e.time) : 'All day'}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Tasks due
+  const taskEl = document.getElementById('today-tasks');
+  if (todayTasks.length === 0) {
+    taskEl.innerHTML = '<div class="empty-state">No tasks due today</div>';
+  } else {
+    taskEl.innerHTML = todayTasks.map(t => `
+      <div class="list-item">
+        <span class="tag tag-${t.priority}">${t.priority}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">${t.title}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Assigned to ${t.assignedTo}</div>
+        </div>
+        <span class="tag ${t.assignedTo === 'Hero' ? 'tag-hero' : 'tag-leo'}">${t.assignedTo}</span>
+      </div>
+    `).join('');
+  }
+}
+
+// ── KANBAN ──
+const COLUMNS = [
+  { id: 'backlog', label: 'Backlog', icon: '📋' },
+  { id: 'inprogress', label: 'In Progress', icon: '🔄' },
+  { id: 'review', label: 'Review', icon: '👁' },
+  { id: 'done', label: 'Done', icon: '✅' }
+];
+
+function renderKanban() {
+  const board = document.getElementById('kanban-board');
+  const todayStr = today();
+  board.innerHTML = COLUMNS.map(col => {
+    const colTasks = state.tasks.filter(t => t.status === col.id);
+    const cards = colTasks.length === 0
+      ? '<div class="empty-state" style="padding:16px 8px;font-size:12px">No tasks</div>'
+      : colTasks.map(t => buildCard(t, col, todayStr)).join('');
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-header">
+          <span class="kanban-col-title">${col.icon} ${col.label}</span>
+          <span class="kanban-count">${colTasks.length}</span>
+        </div>
+        <div class="kanban-cards">${cards}</div>
+        <div class="kanban-add-btn" onclick="openTaskModal('${col.id}')">+ Add task</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildCard(t, col, todayStr) {
+  const dueToday = t.dueDate === todayStr;
+  const prevCol = COLUMNS[COLUMNS.findIndex(c => c.id === col.id) - 1];
+  const nextCol = COLUMNS[COLUMNS.findIndex(c => c.id === col.id) + 1];
+  const moveButtons = [
+    prevCol ? `<button class="card-move-btn" onclick="moveTask('${t.id}','${prevCol.id}',event)">← ${prevCol.label}</button>` : '',
+    nextCol ? `<button class="card-move-btn" onclick="moveTask('${t.id}','${nextCol.id}',event)">→ ${nextCol.label}</button>` : ''
+  ].join('');
+  return `
+    <div class="kanban-card ${t.priority}-border">
+      <div class="card-title">${t.title}</div>
+      ${t.description ? `<div style="font-size:11px;color:var(--text3);margin-bottom:4px;line-height:1.4">${t.description}</div>` : ''}
+      <div class="card-meta">
+        <span class="tag tag-${t.priority}">${t.priority}</span>
+        <span class="tag ${t.assignedTo === 'Hero' ? 'tag-hero' : 'tag-leo'}">${t.assignedTo}</span>
+        ${dueToday ? '<span class="due-today">⚠ Due today</span>' : ''}
+      </div>
+      <div class="card-actions">
+        ${moveButtons}
+        <button class="card-delete-btn" onclick="deleteTask('${t.id}',event)">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+function moveTask(id, newStatus, event) {
+  event && event.stopPropagation();
+  const t = state.tasks.find(t => t.id === id);
+  if (t) { t.status = newStatus; saveData(); renderKanban(); renderToday(); updateBadges(); }
+}
+function deleteTask(id, event) {
+  event && event.stopPropagation();
+  if (!confirm('Delete this task?')) return;
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  saveData(); renderKanban(); renderToday(); updateBadges();
+}
+
+// ── Task Modal ──
+let editingTaskId = null;
+function openTaskModal(defaultStatus) {
+  editingTaskId = null;
+  document.getElementById('task-modal-title').textContent = 'New Task';
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-desc').value = '';
+  document.getElementById('task-assigned').value = 'Leo';
+  document.getElementById('task-priority').value = 'medium';
+  document.getElementById('task-status').value = defaultStatus || 'backlog';
+  document.getElementById('task-due').value = '';
+  document.getElementById('task-modal').classList.add('open');
+  setTimeout(() => document.getElementById('task-title').focus(), 50);
+}
+function closeTaskModal() {
+  document.getElementById('task-modal').classList.remove('open');
+}
+function saveTask() {
+  const title = document.getElementById('task-title').value.trim();
+  if (!title) { alert('Please enter a task title.'); return; }
+  const task = {
+    id: editingTaskId || uid(),
+    title,
+    description: document.getElementById('task-desc').value.trim(),
+    assignedTo: document.getElementById('task-assigned').value,
+    priority: document.getElementById('task-priority').value,
+    status: document.getElementById('task-status').value,
+    dueDate: document.getElementById('task-due').value || null,
+    dateAdded: today()
+  };
+  if (editingTaskId) {
+    const idx = state.tasks.findIndex(t => t.id === editingTaskId);
+    if (idx >= 0) state.tasks[idx] = task;
+  } else {
+    state.tasks.push(task);
+  }
+  saveData(); closeTaskModal(); renderKanban(); renderToday(); updateBadges();
+}
+
+// ── REMINDERS ──
+function renderReminders() {
+  const active = state.reminders.filter(r => !r.completed);
+  const done = state.reminders.filter(r => r.completed);
+
+  const activeEl = document.getElementById('reminders-active-list');
+  if (active.length === 0) {
+    activeEl.innerHTML = '<div class="empty-state">No active reminders</div>';
+  } else {
+    activeEl.innerHTML = active.map(r => `
+      <div class="reminder-item">
+        <input type="checkbox" onchange="toggleReminder('${r.id}', this.checked)" />
+        <span class="reminder-text">${r.text}</span>
+        <span class="reminder-delete" onclick="deleteReminder('${r.id}')">✕</span>
+      </div>
+    `).join('');
+  }
+
+  const doneEl = document.getElementById('reminders-done-list');
+  if (done.length === 0) {
+    doneEl.innerHTML = '<div class="empty-state">Nothing completed yet</div>';
+  } else {
+    doneEl.innerHTML = done.map(r => `
+      <div class="reminder-item">
+        <input type="checkbox" checked onchange="toggleReminder('${r.id}', this.checked)" />
+        <span class="reminder-text done">${r.text}</span>
+        <span class="reminder-delete" onclick="deleteReminder('${r.id}')">✕</span>
+      </div>
+    `).join('');
+  }
+}
+function toggleReminder(id, checked) {
+  const r = state.reminders.find(r => r.id === id);
+  if (r) { r.completed = checked; saveData(); renderReminders(); updateBadges(); }
+}
+function deleteReminder(id) {
+  state.reminders = state.reminders.filter(r => r.id !== id);
+  saveData(); renderReminders(); updateBadges();
+}
+function handleReminderKeydown(e) {
+  if (e.key === 'Enter') addReminder();
+}
+function addReminder() {
+  const inp = document.getElementById('new-reminder-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  state.reminders.push({ id: uid(), text, completed: false, dateAdded: today() });
+  inp.value = '';
+  saveData(); renderReminders(); updateBadges();
+}
+
+// ── CALENDAR ──
+function getWeekDays() {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - ((day + 6) % 7));
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+function renderCalendar() {
+  const days = getWeekDays();
+  const todayStr = today();
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  document.getElementById('calendar-week-label').textContent =
+    days[0].toLocaleDateString('en-AU', {day:'numeric', month:'long'}) + ' – ' +
+    days[6].toLocaleDateString('en-AU', {day:'numeric', month:'long', year:'numeric'});
+
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = days.map((d, i) => {
+    const dateStr = d.toISOString().slice(0,10);
+    const isToday = dateStr === todayStr;
+    const dayEvents = state.events.filter(e => e.date === dateStr);
+    const eventsHtml = dayEvents.map(e => `
+      <div class="cal-event">
+        <span class="evt-time">${e.time ? fmtTime(e.time) : 'All day'}</span>
+        ${e.title}
+        <span class="cal-event-delete" onclick="deleteEvent('${e.id}')">✕</span>
+      </div>
+    `).join('');
+    return `
+      <div class="day-col ${isToday ? 'today' : ''}">
+        <div class="day-header">
+          <div class="day-name">${dayNames[i]}</div>
+          <div class="day-num">${d.getDate()}</div>
+        </div>
+        <div class="day-events">${eventsHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+function deleteEvent(id) {
+  state.events = state.events.filter(e => e.id !== id);
+  saveData(); renderCalendar(); renderToday(); updateBadges();
+}
+
+// ── Event Modal ──
+function openEventModal() {
+  document.getElementById('event-title').value = '';
+  document.getElementById('event-date').value = today();
+  document.getElementById('event-time').value = '';
+  document.getElementById('event-desc').value = '';
+  document.getElementById('event-modal').classList.add('open');
+  setTimeout(() => document.getElementById('event-title').focus(), 50);
+}
+function closeEventModal() {
+  document.getElementById('event-modal').classList.remove('open');
+}
+function saveEvent() {
+  const title = document.getElementById('event-title').value.trim();
+  const date = document.getElementById('event-date').value;
+  if (!title || !date) { alert('Please enter a title and date.'); return; }
+  state.events.push({
+    id: uid(),
+    title,
+    date,
+    time: document.getElementById('event-time').value || '',
+    description: document.getElementById('event-desc').value.trim()
+  });
+  saveData(); closeEventModal(); renderCalendar(); renderToday(); updateBadges();
+}
+
+// ── Close modals on overlay click ──
+document.getElementById('task-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeTaskModal();
+});
+document.getElementById('event-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEventModal();
+});
+
+// ── Init ──
+startClock();
+loadData();
+
+// Show topbar action only on relevant pages
+document.getElementById('topbar-action-btn').style.display = 'none';
+
+// Auto-refresh every 60s to pick up Hero's data.json writes
+setInterval(() => {
+  loadData();
+}, 60000);
 </script>
 </body>
 </html>

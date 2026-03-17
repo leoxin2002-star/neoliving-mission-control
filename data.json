@@ -1,0 +1,142 @@
+{
+  "tasks": [
+    {
+      "id": "task-1",
+      "title": "Send quote to Vince",
+      "description": "Prepare and send pricing quote to Vince",
+      "assignedTo": "Leo",
+      "priority": "high",
+      "status": "inprogress",
+      "dueDate": "2026-03-17",
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "task-2",
+      "title": "Tony site visit follow-up",
+      "description": "Follow up with Tony after site visit",
+      "assignedTo": "Leo",
+      "priority": "high",
+      "status": "inprogress",
+      "dueDate": "2026-03-17",
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "task-3",
+      "title": "Tell Jackson about Nicky Friday",
+      "description": "Let Jackson know about the Nicky meeting on Friday",
+      "assignedTo": "Leo",
+      "priority": "medium",
+      "status": "backlog",
+      "dueDate": null,
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "task-4",
+      "title": "Tell Dylan about Aaron",
+      "description": "Pass along info about Aaron to Dylan",
+      "assignedTo": "Leo",
+      "priority": "medium",
+      "status": "backlog",
+      "dueDate": null,
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "task-5",
+      "title": "Contact Tue re IT/CRM",
+      "description": "Reach out to Tue about IT and CRM setup",
+      "assignedTo": "Leo",
+      "priority": "medium",
+      "status": "backlog",
+      "dueDate": null,
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "task-6",
+      "title": "Fix WhatsApp connection",
+      "description": "Debug and fix the WhatsApp integration",
+      "assignedTo": "Hero",
+      "priority": "low",
+      "status": "backlog",
+      "dueDate": null,
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "task-7",
+      "title": "Ben SOP - ask questions",
+      "description": "Prepare and send SOP questions to Ben",
+      "assignedTo": "Hero",
+      "priority": "high",
+      "status": "inprogress",
+      "dueDate": null,
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "task-8",
+      "title": "Add VPN for Catherine",
+      "description": "Set up VPN access for Catherine",
+      "assignedTo": "Leo",
+      "priority": "low",
+      "status": "backlog",
+      "dueDate": null,
+      "dateAdded": "2026-03-17"
+    }
+  ],
+  "reminders": [
+    {
+      "id": "rem-1",
+      "text": "Send Vince quote by 4pm today",
+      "completed": false,
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "rem-2",
+      "text": "Kane Marketing Meeting @ 1pm today",
+      "completed": false,
+      "dateAdded": "2026-03-17"
+    },
+    {
+      "id": "rem-3",
+      "text": "Follow up with Tony after site visit",
+      "completed": false,
+      "dateAdded": "2026-03-17"
+    }
+  ],
+  "events": [
+    {
+      "id": "evt-1",
+      "title": "Kane Marketing Meeting",
+      "date": "2026-03-17",
+      "time": "13:00",
+      "description": ""
+    },
+    {
+      "id": "evt-2",
+      "title": "Nicky (Nu Design) + Client",
+      "date": "2026-03-20",
+      "time": "13:00",
+      "description": ""
+    },
+    {
+      "id": "evt-3",
+      "title": "Send Vince quote reminder",
+      "date": "2026-03-17",
+      "time": "16:00",
+      "description": ""
+    },
+    {
+      "id": "evt-4",
+      "title": "Depart China (Leo + Marcus)",
+      "date": "2026-04-13",
+      "time": "",
+      "description": "All day"
+    },
+    {
+      "id": "evt-5",
+      "title": "Return from China",
+      "date": "2026-04-23",
+      "time": "",
+      "description": "All day"
+    }
+  ],
+  "lastUpdated": "2026-03-17T11:09:00+10:00"
+}
