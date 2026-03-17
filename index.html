@@ -1035,7 +1035,7 @@ let state = {
 };
 
 // ── Load / Save ──
-function loadData() {
+async function loadData() {
   try {
     const saved = localStorage.getItem(LS_KEY);
     if (saved) {
@@ -1043,10 +1043,27 @@ function loadData() {
       state = { tasks: d.tasks || [], reminders: d.reminders || [], events: d.events || [], lastUpdated: d.lastUpdated || '' };
       console.log('Loaded from localStorage');
     } else {
-      // First load — use DEFAULT_DATA
-      state = JSON.parse(JSON.stringify(DEFAULT_DATA));
-      console.log('Using default data (first load)');
-      saveData(); // persist defaults immediately
+      // First load — try data.json (migration from previous version), then fall back to DEFAULT_DATA
+      let migrated = false;
+      try {
+        const res = await fetch('./data.json?t=' + Date.now());
+        if (res.ok) {
+          const d = await res.json();
+          if (d && (d.tasks || d.reminders || d.events)) {
+            state = { tasks: d.tasks || [], reminders: d.reminders || [], events: d.events || [], lastUpdated: d.lastUpdated || '' };
+            console.log('Migrated from data.json');
+            saveData(); // persist to localStorage going forward
+            migrated = true;
+          }
+        }
+      } catch(fetchErr) {
+        console.log('data.json not available, using defaults');
+      }
+      if (!migrated) {
+        state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        console.log('Using default data (first load)');
+        saveData(); // persist defaults immediately
+      }
     }
   } catch(e) {
     console.warn('localStorage load failed, using defaults:', e);
@@ -1205,7 +1222,7 @@ function renderKanban() {
     return `
       <div class="kanban-col" data-col="${col.id}"
            ondragover="onColDragOver(event, this)"
-           ondragleave="onColDragLeave(this)"
+           ondragleave="onColDragLeave(event, this)"
            ondrop="onColDrop(event, '${col.id}', this)">
         <div class="kanban-col-header">
           <span class="kanban-col-title">${col.icon} ${col.label}</span>
@@ -1452,9 +1469,11 @@ function onColDragOver(event, colEl) {
   colEl.classList.add('drag-over');
 }
 
-function onColDragLeave(colEl) {
-  // Only remove if we actually left the column (not just entered a child)
-  colEl.classList.remove('drag-over');
+function onColDragLeave(event, colEl) {
+  // Only remove if we actually left the column (not just entered a child element)
+  if (!colEl.contains(event.relatedTarget)) {
+    colEl.classList.remove('drag-over');
+  }
 }
 
 function onColDrop(event, colId, colEl) {
