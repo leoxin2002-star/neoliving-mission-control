@@ -1008,7 +1008,7 @@
 <script>
 // ── Default Data ──
 const DEFAULT_DATA = {
-  version: "2",
+  version: "3",
   tasks: [
     { id: "task-1", title: "Send quote to Vince", description: "Prepare and send pricing quote to Vince by COB today", assignedTo: "Leo", priority: "high", status: "inprogress", dueDate: "2026-03-17", dateAdded: "2026-03-17" },
     { id: "task-2", title: "Tony site visit follow-up", description: "Follow up with Tony after site visit", assignedTo: "Leo", priority: "high", status: "inprogress", dueDate: "2026-03-17", dateAdded: "2026-03-17" },
@@ -1026,7 +1026,15 @@ const DEFAULT_DATA = {
     { id: 'rem-002', text: 'Check in with Ben about factory compliance certs', completed: false, dateAdded: '2026-03-17' },
     { id: 'rem-003', text: 'Send Willy updated town planning brief', completed: false, dateAdded: '2026-03-17' }
   ],
-  events: [],
+  events: [
+    { id: "evt-1", title: "Kane Marketing Meeting", date: "2026-03-17", time: "13:00", description: "Melbourne trial discussion, commission structure" },
+    { id: "evt-2", title: "Nicky (Nu Design) + Client", date: "2026-03-20", time: "13:00", description: "Interior designer, Heart of Purple project. Jackson to be briefed." },
+    { id: "evt-3", title: "Send Vince Quote - DEADLINE", date: "2026-03-17", time: "17:00", description: "Must send quote to Vince by COB today" },
+    { id: "evt-4", title: "China Trip Departs (Leo + Marcus)", date: "2026-04-13", time: "10:10", description: "BNE to Qingdao via Guangzhou. China Southern." },
+    { id: "evt-5", title: "Return from China", date: "2026-04-23", time: "08:25", description: "Qingdao to BNE via Guangzhou. China Southern." },
+    { id: "evt-6", title: "Ethan - Aaron check-in", date: "2026-03-18", time: "09:00", description: "Chat with Ethan about Aaron installer situation" },
+    { id: "evt-7", title: "Kane Meeting - Marketing", date: "2026-03-17", time: "13:00", description: "Already happened today" }
+  ],
   lastUpdated: '2026-03-17T00:00:00.000Z'
 };
 
