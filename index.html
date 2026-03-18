@@ -651,6 +651,121 @@
     font-size: 12px;
   }
 
+  /* ── Quick Capture ── */
+  .qc-input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .qc-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color .15s;
+  }
+  .qc-input:focus { border-color: var(--accent); }
+  .qc-input::placeholder { color: var(--text3); }
+  .qc-add-btn {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s;
+  }
+  .qc-add-btn:hover { background: var(--accent2); }
+  .qc-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    color: var(--text3);
+    margin-bottom: 8px;
+    padding: 0 2px;
+  }
+  .qc-count {
+    color: var(--accent);
+    margin-left: 6px;
+    font-size: 11px;
+  }
+  .qc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+  }
+  .qc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    transition: background .1s;
+  }
+  .qc-item:hover { background: var(--bg3); }
+  .qc-item input[type="checkbox"] {
+    width: 16px; height: 16px;
+    cursor: pointer;
+    accent-color: var(--green);
+    flex-shrink: 0;
+  }
+  .qc-item-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .qc-item-text.done {
+    text-decoration: line-through;
+    color: var(--text3);
+  }
+  .qc-delete {
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity .15s, color .15s;
+    background: none;
+    border: none;
+    line-height: 1;
+  }
+  .qc-item:hover .qc-delete { opacity: 1; }
+  .qc-delete:hover { color: var(--red); }
+  .qc-empty {
+    font-size: 13px;
+    color: var(--text3);
+    padding: 12px 2px;
+  }
+  .qc-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+  .qc-clear-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text3);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .qc-clear-btn:hover { background: rgba(248,81,73,.1); color: var(--red); border-color: rgba(248,81,73,.3); }
+
   /* ── Drag and Drop ── */
   .kanban-card.dragging {
     opacity: 0.35;
@@ -703,6 +818,13 @@
     <div class="sidebar-section-label">Planning</div>
     <div class="nav-item" onclick="showPage('calendar')" id="nav-calendar">
       <span class="icon">🗓</span> Calendar
+    </div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Tools</div>
+    <div class="nav-item" onclick="showPage('quickcapture')" id="nav-quickcapture">
+      <span class="icon">📝</span> Quick Capture
+      <span class="nav-badge green" id="badge-quickcapture" style="display:none">0</span>
     </div>
   </div>
   <div class="sidebar-bottom">
@@ -950,6 +1072,25 @@
       </div>
     </div>
 
+    <!-- QUICK CAPTURE PAGE -->
+    <div class="page" id="page-quickcapture">
+      <div class="qc-input-row">
+        <input type="text" class="qc-input" id="qc-input" placeholder="Type a to-do and press Enter…" onkeydown="handleQCKeydown(event)" />
+        <button class="qc-add-btn" onclick="addQCItem()">Add</button>
+      </div>
+      <div id="qc-active-section">
+        <div class="qc-section-label">Active <span class="qc-count" id="qc-active-count">0</span></div>
+        <div class="qc-list" id="qc-active-list"></div>
+      </div>
+      <div id="qc-completed-section" style="display:none">
+        <div class="qc-section-label" style="margin-top:12px">Completed</div>
+        <div class="qc-list" id="qc-done-list"></div>
+        <div class="qc-footer">
+          <button class="qc-clear-btn" onclick="clearQCCompleted()">Clear completed</button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content-area -->
 </div><!-- /main -->
 
@@ -1040,7 +1181,7 @@
 <script>
 // ── Default Data ──
 const DEFAULT_DATA = {
-  version: "6",
+  version: "7",
   tasks: [
     { id: "task-1", title: "Send quote to Vince", description: "Prepare and send pricing quote to Vince by COB today", assignedTo: "Leo", priority: "high", status: "inprogress", dueDate: "2026-03-17", dateAdded: "2026-03-17" },
     { id: "task-2", title: "Tony site visit follow-up", description: "Follow up with Tony after site visit", assignedTo: "Leo", priority: "high", status: "inprogress", dueDate: "2026-03-17", dateAdded: "2026-03-17" },
@@ -1134,7 +1275,7 @@ function showPage(name) {
   document.getElementById('nav-' + name).classList.add('active');
   currentPage = name;
 
-  const titles = { today:'Today', intelligence:'Intelligence', activity:'Activity Feed', tasks:'Task Board', reminders:'Reminders', calendar:'Calendar' };
+  const titles = { today:'Today', intelligence:'Intelligence', activity:'Activity Feed', tasks:'Task Board', reminders:'Reminders', calendar:'Calendar', quickcapture:'Quick Capture' };
   document.getElementById('topbar-title').textContent = titles[name] || name;
 
   const actionLabels = { tasks:'+ Add Task', reminders:'+ Add Reminder', calendar:'+ Add Event' };
@@ -1146,6 +1287,7 @@ function showPage(name) {
   if (name === 'tasks') renderKanban();
   if (name === 'reminders') renderReminders();
   if (name === 'today') renderToday();
+  if (name === 'quickcapture') renderQC();
 }
 
 function handleTopbarAction() {
@@ -1198,6 +1340,11 @@ function updateBadges() {
   const activeRem = state.reminders.filter(r => !r.completed).length;
   document.getElementById('badge-reminders').textContent = activeRem;
   document.getElementById('badge-reminders').style.display = activeRem ? '' : 'none';
+
+  const activeQC = loadQCItems().filter(i => !i.done).length;
+  const qcBadge = document.getElementById('badge-quickcapture');
+  qcBadge.textContent = activeQC;
+  qcBadge.style.display = activeQC ? '' : 'none';
 }
 
 // ── TODAY ──
@@ -1707,6 +1854,77 @@ function touchEnd(e) {
   if (touchDragEl) { touchDragEl.classList.remove('dragging'); touchDragEl = null; }
   touchDragTask = null;
   e.preventDefault();
+}
+
+// ── QUICK CAPTURE ──
+const QC_KEY = 'neoliving_quick_capture';
+
+function loadQCItems() {
+  try {
+    return JSON.parse(localStorage.getItem(QC_KEY) || '[]');
+  } catch(e) { return []; }
+}
+function saveQCItems(items) {
+  localStorage.setItem(QC_KEY, JSON.stringify(items));
+  updateBadges();
+}
+function renderQC() {
+  const items = loadQCItems();
+  const active = items.filter(i => !i.done);
+  const done = items.filter(i => i.done);
+
+  document.getElementById('qc-active-count').textContent = active.length;
+
+  const activeList = document.getElementById('qc-active-list');
+  activeList.innerHTML = active.length === 0
+    ? '<div class="qc-empty">Nothing here yet — type something above and press Enter.</div>'
+    : active.map(i => buildQCRow(i)).join('');
+
+  const doneList = document.getElementById('qc-done-list');
+  const doneSection = document.getElementById('qc-completed-section');
+  if (done.length === 0) {
+    doneSection.style.display = 'none';
+  } else {
+    doneSection.style.display = '';
+    doneList.innerHTML = done.map(i => buildQCRow(i)).join('');
+  }
+}
+function buildQCRow(item) {
+  return `
+    <div class="qc-item" id="qc-row-${item.id}">
+      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleQCItem('${item.id}', this.checked)" />
+      <span class="qc-item-text ${item.done ? 'done' : ''}">${escHtml(item.text)}</span>
+      <button class="qc-delete" onclick="deleteQCItem('${item.id}')" title="Delete">✕</button>
+    </div>
+  `;
+}
+function handleQCKeydown(e) {
+  if (e.key === 'Enter') addQCItem();
+}
+function addQCItem() {
+  const inp = document.getElementById('qc-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  const items = loadQCItems();
+  items.unshift({ id: uid(), text, done: false, dateAdded: new Date().toISOString() });
+  saveQCItems(items);
+  inp.value = '';
+  renderQC();
+}
+function toggleQCItem(id, checked) {
+  const items = loadQCItems();
+  const item = items.find(i => i.id === id);
+  if (item) { item.done = checked; saveQCItems(items); renderQC(); }
+}
+function deleteQCItem(id) {
+  const items = loadQCItems().filter(i => i.id !== id);
+  saveQCItems(items);
+  renderQC();
+}
+function clearQCCompleted() {
+  const items = loadQCItems().filter(i => !i.done);
+  saveQCItems(items);
+  renderQC();
 }
 
 // ── Close modals on overlay click ──
